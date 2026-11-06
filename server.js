@@ -242,11 +242,11 @@ function createApp({ sheets, spreadsheetId, filesDir, user, pass, baseUrl, tz })
     const dirs = entries.filter((e) => e.isDirectory()).map((e) => '<a class="d" href="' + base + encodeURIComponent(e.name) + '/">📁 ' + html(e.name) + '</a>').join('');
     const imgs = entries.filter((e) => e.isFile()).map((e) => '<a class="i" href="' + base + encodeURIComponent(e.name) + '" target="_blank"><img loading="lazy" src="' + base + encodeURIComponent(e.name) + '" alt=""><span>' + html(e.name) + '</span></a>').join('');
     res.send('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Foto</title>' +
-      '<style>body{font:15px system-ui,sans-serif;margin:0;padding:16px;background:#eef2f7}header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}nav{font-weight:600}a{color:#1565c0;text-decoration:none}.home{display:inline-block;background:#1565c0;color:#fff;border-radius:8px;padding:9px 13px;font-weight:600}' +
+      '<style>body{font:15px system-ui,sans-serif;margin:0;padding:16px;background:#eef2f7}header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:-16px -16px 14px;padding:10px 16px;background:#eef2f7;border-bottom:1px solid #cfd8e3}nav{font-weight:600}a{color:#1565c0;text-decoration:none}.home{display:inline-block;background:#1565c0;color:#fff;border-radius:8px;padding:9px 13px;font-weight:700}' +
       '.d{display:block;background:#fff;border:1px solid #cfd8e3;border-radius:8px;padding:12px 14px;margin-bottom:8px;color:#1b2733}' +
       '.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}.i{background:#fff;border:1px solid #cfd8e3;border-radius:8px;overflow:hidden}' +
       '.i img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#dde4ec}.i span{display:block;padding:6px 8px;font-size:11.5px;word-break:break-all;color:#1b2733}</style>' +
-      '<header><nav>' + crumbs + '</nav><a class="home" href="/">Kembali ke form</a></header>' + dirs + (imgs ? '<div class="g">' + imgs + '</div>' : '') + (!dirs && !imgs ? '<p>Folder kosong.</p>' : ''));
+      '<header><nav>' + crumbs + '</nav><a class="home" href="/">← Kembali ke form</a></header>' + dirs + (imgs ? '<div class="g">' + imgs + '</div>' : '') + (!dirs && !imgs ? '<p>Folder kosong.</p>' : ''));
   });
 
   app.use(express.static(path.join(__dirname, 'public')));
