@@ -1,0 +1,20 @@
+{
+  "name": "healthy-check-eas",
+  "version": "3.0.0",
+  "description": "Form Healthy Check & Validasi EAS (Node.js + Google Sheets + foto di server)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "token": "node get-token.js",
+    "setup": "node setup.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@googleapis/sheets": "^9.3.0",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "google-auth-library": "^9.14.0"
+  }
+}

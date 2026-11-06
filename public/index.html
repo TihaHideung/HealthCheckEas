@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Healthy Check & Validasi EAS</title>
+<style>
+  :root {
+    --brand: #1565c0; --brand-d: #0d47a1; --ink: #1b2733; --muted: #5d6b7a;
+    --bg: #eef2f7; --card: #fff; --line: #cfd8e3; --soft: #f3f6fa;
+    --ok: #2e7d32; --bad: #c62828;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 12px; }
+  header.top { background: var(--brand); color: #fff; padding: 18px 0 20px; padding-top: calc(18px + env(safe-area-inset-top, 0px)); }
+  header.top .wrap { padding-top: 0; padding-bottom: 0; }
+  h1 { margin: 0; font-size: clamp(20px, 5vw, 28px); line-height: 1.2; }
+  .tag { font-size: 11px; border: 1px solid rgba(255,255,255,.8); border-radius: 10px; padding: 1px 7px; margin-left: 8px; vertical-align: middle; font-weight: 500; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+  .grid { display: grid; gap: 12px 16px; grid-template-columns: 1fr; }
+  @media (min-width: 680px) { .grid { grid-template-columns: 1fr 1fr; } .full { grid-column: 1 / -1; } }
+
+  .f { display: flex; flex-direction: column; min-width: 0; }
+  .f > span.lab, label.f > span { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .req { color: var(--bad); }
+  input[type=text], input[type=number], select {
+    width: 100%; min-height: 46px; padding: 10px 12px; font: inherit; color: inherit; background: #fff;
+    border: 1.5px solid var(--line); border-radius: 8px;
+  }
+  select { appearance: none; -webkit-appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, #5d6b7a 50%), linear-gradient(135deg, #5d6b7a 50%, transparent 50%);
+    background-position: calc(100% - 20px) 20px, calc(100% - 15px) 20px; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 34px; }
+  input:focus, select:focus, summary:focus-visible, button:focus-visible, .pbtn:focus-within {
+    outline: 3px solid rgba(21,101,192,.35); outline-offset: 1px; border-color: var(--brand);
+  }
+  input[readonly] { background: var(--soft); }
+  .invalid input { border-color: var(--bad); background: #fff6f5; }
+  .err { display: none; color: var(--bad); font-size: 13px; margin-top: 4px; }
+  .invalid .err { display: block; }
+  .hint { font-size: 12.5px; color: var(--muted); margin-top: 4px; min-height: 1em; }
+  .hint.ok { color: var(--ok); } .hint.warn { color: #9a6700; }
+
+  /* section collapsible */
+  details.sec { background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+  details.sec > summary {
+    list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: var(--brand); color: #fff; padding: 13px 16px; font-weight: 700; font-size: 16px;
+  }
+  details.sec > summary::-webkit-details-marker { display: none; }
+  details.sec > summary .chev { transition: transform .15s; font-size: 13px; }
+  details.sec[open] > summary .chev { transform: rotate(90deg); }
+  details.sec > .body { padding: 16px; }
+  .sec-actions { display: flex; align-items: center; gap: 10px; }
+  .btn-del { background: #e53935; color: #fff; border: 0; border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+
+  h4 { margin: 18px 0 8px; padding: 7px 10px; background: var(--soft); border-left: 4px solid var(--brand); font-size: 14.5px; }
+  h4:first-child { margin-top: 0; }
+  h5 { margin: 16px 0 6px; font-size: 14px; color: var(--brand-d); }
+
+  .pair { display: grid; gap: 12px 16px; grid-template-columns: 1fr; margin-bottom: 12px; align-items: start; }
+  @media (min-width: 680px) { .pair { grid-template-columns: 1fr 1fr; } }
+  .stack > * + * { margin-top: 12px; }
+
+  /* foto */
+  .photo .pbox { display: flex; align-items: center; gap: 10px; }
+  .pbtn { position: relative; flex: 1; min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+    border: 1.5px dashed var(--brand); color: var(--brand); border-radius: 8px; font-weight: 600; background: #f5f9ff; padding: 8px 10px; text-align: center; }
+  .pbtn svg { width: 20px; height: 20px; flex: none; }
+  .pbtn input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .pprev { position: relative; width: 56px; height: 56px; flex: none; }
+  .pprev img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); display: block; }
+  .pprev button { position: absolute; top: -7px; right: -7px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: #1b2733; color: #fff; cursor: pointer; line-height: 1; font-size: 15px; }
+  .photo.has .pbtn { border-style: solid; background: #e8f5e9; border-color: var(--ok); color: var(--ok); }
+
+  .sn-item { padding: 10px; border: 1px solid var(--line); border-radius: 8px; margin-top: 10px; display: grid; gap: 10px; }
+  @media (min-width: 680px) { .sn-item { grid-template-columns: 1fr 1fr; } }
+
+  .btn { font: inherit; font-weight: 700; min-height: 46px; padding: 0 18px; border-radius: 8px; border: 0; cursor: pointer; background: var(--brand); color: #fff; }
+  .btn.alt { background: #fff; color: var(--brand); border: 1.5px solid var(--brand); }
+  .btn[disabled] { opacity: .5; cursor: not-allowed; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  #timer { font: 700 30px/1 ui-monospace, Menlo, Consolas, monospace; margin: 14px 0; }
+  .bk-item { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-top: 12px; }
+  .bk-item h4 { margin-top: 0; }
+  .quad { display: grid; gap: 10px 14px; grid-template-columns: 1fr 1fr; }
+  @media (min-width: 680px) { .quad { grid-template-columns: repeat(4, 1fr); } }
+
+  /* submit bar */
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: rgba(238,242,247,.94); backdrop-filter: blur(6px); border-top: 1px solid var(--line); }
+  .bar .in { max-width: 980px; margin: 0 auto; display: flex; gap: 10px; align-items: center; }
+  .bar .msg { flex: 1; font-size: 13px; color: var(--bad); min-height: 1em; }
+  .bar .btn { min-width: 160px; font-size: 16px; }
+  @media (max-width: 520px) { .bar .in { flex-direction: column; align-items: stretch; } .bar .msg:empty { display: none; } }
+
+  /* overlay */
+  #ov { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.55); align-items: center; justify-content: center; padding: 16px; }
+  #ov.show { display: flex; }
+  #ov .box { background: #fff; border-radius: 12px; padding: 24px; width: 100%; max-width: 380px; text-align: center; }
+  #ov .big { font-size: 40px; line-height: 1; margin-bottom: 8px; }
+  #ov .title { font-weight: 700; font-size: 17px; margin-bottom: 6px; }
+  #ov .sub { color: var(--muted); font-size: 14px; margin-bottom: 14px; word-break: break-word; }
+  #ov .prog { height: 8px; background: var(--soft); border-radius: 4px; overflow: hidden; margin: 12px 0; }
+  #ov .prog i { display: block; height: 100%; width: 0; background: var(--brand); transition: width .2s; }
+  #ov .warnline { color: var(--bad); font-weight: 700; font-size: 13px; }
+  #ov .btn { width: 100%; margin-top: 8px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <h1>Healthy Check &amp; Validasi EAS<span class="tag">@BJ</span></h1>
+</div></header>
+
+<main class="wrap" id="app"></main>
+
+<div class="bar"><div class="in">
+  <div class="msg" id="barMsg" role="alert"></div>
+  <button class="btn" id="btnSubmit" type="button">Submit</button>
+</div></div>
+
+<div id="ov" role="dialog" aria-modal="true"><div class="box" id="ovBox"></div></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+
+  /* ================= DATA PILIHAN ================= */
+  var OKN = ['OK', 'NOK', 'N/A'];
+  var range = function (a, b, suf) { var o = []; for (var i = a; i <= b; i++) o.push(i + (suf || '')); return o; };
+  var bankPack = function (n) { return range(0, n, ' Bank').concat(range(0, n, ' Pack')); };
+  var dayaMcb = []; [7, 16, 23, 32, 50, 63, 80].forEach(function (a) { [1, 2, 3].forEach(function (p) { dayaMcb.push(a + 'A-' + p + 'Phasa'); }); });
+  var LISTS = {
+    mcbKwh: ['1 Phasa', '2 Phasa', '3 Phasa'],
+    dayaMcbKwh: dayaMcb,
+    typeRect: ['Harif APR48-2G', 'Harif APR48-3G', 'NetSure 531 2000e3', 'EMERSON 2000', 'ZTE 3000W', 'Vertiv 3000W'],
+    ncuType: ['SC 200', 'Emerson M830B', 'Vertiv M830B', 'Emerson M800B', 'ZTE CSU 603'],
+    modulRect: ['APR48-2G', 'APR48-3G', 'Vertiv R48-2000e3', 'Emerson R48-2000e3', 'Emerson 2000', 'Vertiv R48-3000e3', 'ZTE R48-3000W'],
+    jenisBattery: ['VRLA', 'Lithium'],
+    batteryType: ['SacredSun 100AH', 'Maxlife 100AH', 'Sonnenschein 100AH', 'Sonnenschein 1000AH', 'ZTE SmartLi', 'SacredSun Lithium'],
+    beltingRect: ['Rack Battery Di Belting Mati', 'Rack Rect Di Belting Menyeluruh', 'Rack Battery dan Rack Rect Tidak Di Belting'],
+    beltingRbs: ['Rack RBS Dalam Di Belting, Luar Tidak', 'Rack RBS Luar Di Belting, Dalam Tidak', 'Rack RBS Luar dan Dalam Di Belting', 'Rack RBS Luar dan Dalam Tidak Di Belting']
+  };
+
+  /* ================= BUILDER HTML ================= */
+  var ICON_CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
+
+  // scope: 's' = site-level (data-s), 'k' = per rectifier (data-k)
+  function inp(scope, k, label, o) {
+    o = o || {};
+    var attrs = 'data-' + scope + '="' + k + '" type="' + (o.type || 'text') + '"';
+    if (o.type === 'number') attrs += ' inputmode="decimal" step="any"';
+    if (o.list) attrs += ' list="dl-' + o.list + '" placeholder="Pilih atau ketik manual" autocomplete="off"';
+    if (o.id) attrs += ' id="' + o.id + '"';
+    if (o.ro) attrs += ' readonly';
+    return '<label class="f ' + (o.cls || '') + '"><span>' + label + '</span><input ' + attrs + '></label>';
+  }
+  function sel(scope, k, label, opts, extra) {
+    return '<label class="f"><span>' + label + '</span><select data-' + scope + '="' + k + '"' + (extra || '') + '><option value="">Pilih</option>' +
+      opts.map(function (o) { return '<option>' + esc(o) + '</option>'; }).join('') + '</select></label>';
+  }
+  function photo(key, label, idx) {
+    return '<div class="f photo" data-photo="' + key + '"' + (idx ? ' data-idx="' + idx + '"' : '') + '>' +
+      '<span class="lab">' + label + '</span><div class="pbox">' +
+      '<label class="pbtn">' + ICON_CAM + '<b>Ambil / pilih foto</b><input type="file" accept="image/*"></label>' +
+      '<div class="pprev" hidden><img alt=""><button type="button" class="prm" aria-label="Hapus foto">&times;</button></div>' +
+      '</div></div>';
+  }
+  var pair = function (a, b) { return '<div class="pair">' + a + b + '</div>'; };
+  var statusPair = function (k, title, fk) {
+    return '<h4>' + title + '</h4>' + pair(sel('s', k, 'Status ' + title, OKN), photo(fk, 'Foto ' + title));
+  };
+
+  function sec(id, title, body, open) {
+    return '<details class="sec" id="' + id + '"' + (open ? ' open' : '') + '><summary><span>' + title + '</span><span class="chev">&#9654;</span></summary><div class="body">' + body + '</div></details>';
+  }
+
+  function rectHTML(n) {
+    var del = n > 1 ? '<button type="button" class="btn-del" data-del="' + n + '">Delete</button>' : '';
+    var body =
+      '<h4>Type Rectifier</h4>' + pair(inp('k', 'typeRect', 'Type Rectifier', { list: 'typeRect' }), photo('fotoTypeRect', 'Upload Foto Type Rectifier')) +
+      '<h4>Status Rectifier</h4><div class="grid">' + sel('k', 'statusRect', 'Status Rectifier', ['Aktif', 'Tidak Aktif']) + '</div>' +
+      '<h4>Type Controller</h4>' + pair(inp('k', 'ncuType', 'Type Controller', { list: 'ncuType' }), photo('fotoNcu', 'Upload Foto NCU')) +
+      '<h4>Modul Rectifier</h4><div class="grid">' + inp('k', 'modulRect', 'Modul Rectifier', { list: 'modulRect' }) + sel('k', 'jumlahModulRect', 'Jumlah Modul Rectifier', range(0, 10)) + '</div>' +
+      '<div style="margin-top:12px">' + photo('fotoModulRect', 'Upload Foto Modul Rectifier') + '</div>' +
+      '<h4>Voltase dan Daya Rectifier</h4><div class="grid">' + inp('k', 'voltRect', 'Voltase (VDC)', { type: 'number' }) + inp('k', 'adcRect', 'Daya (ADC)', { type: 'number' }) + '</div>' +
+      '<div style="margin-top:12px">' + photo('fotoRectPower', 'Upload Foto Voltase dan Daya Rectifier') + '</div>' +
+      '<h4>Foto MCB Battery</h4>' + photo('fotoMcbBattery', 'Foto MCB Battery') +
+      '<h4>Foto Arester Rectifier</h4>' + photo('fotoAresterRect', 'Foto Arester Rectifier') +
+      '<h4>Modul Rectifier Good</h4>' + sel('k', 'modulGood', 'Jumlah Modul Good', range(0, 5), ' data-gen="Modul Good"') + '<div class="sn-box" data-cat="Modul Good"></div>' +
+      '<h4>Modul Rectifier Faulty</h4>' + sel('k', 'modulFaulty', 'Jumlah Modul Faulty', range(0, 5), ' data-gen="Modul Faulty"') + '<div class="sn-box" data-cat="Modul Faulty"></div>' +
+      '<h4>Battery</h4>' +
+      '<div class="grid">' + inp('k', 'jenisBattery', 'Jenis Battery', { list: 'jenisBattery' }) + inp('k', 'batteryType', 'Tipe Battery', { list: 'batteryType' }) +
+      sel('k', 'statusBattery', 'Status Battery', ['Aktif', 'Tidak Aktif']) + sel('k', 'jumlahBattery', 'Jumlah Battery', bankPack(8)) + '</div>' +
+      '<div style="margin-top:12px">' + photo('fotoJumlahBattery', 'Upload Foto Battery') + '</div>' +
+      '<h4>Battery Good</h4>' + sel('k', 'batteryGood', 'Jumlah Battery Good', bankPack(5), ' data-gen="Battery Good"') + '<div class="sn-box" data-cat="Battery Good" data-photo-sn="1"></div>' +
+      '<h4>Battery Faulty</h4>' + sel('k', 'batteryFaulty', 'Jumlah Battery Faulty', bankPack(5), ' data-gen="Battery Faulty"') + '<div class="sn-box" data-cat="Battery Faulty" data-photo-sn="1"></div>';
+    return '<details class="sec rect" data-rectno="' + n + '"><summary><span>🔋 Rectifier &amp; Battery' + (n > 1 ? ' #' + n : '') + '</span>' +
+      '<span class="sec-actions">' + del + '<span class="chev">&#9654;</span></span></summary><div class="body">' + body + '</div></details>';
+  }
+
+  var rectCounter = 0;
+
+  function buildForm() {
+    rectCounter = 1;
+    var dl = Object.keys(LISTS).map(function (k) {
+      return '<datalist id="dl-' + k + '">' + LISTS[k].map(function (o) { return '<option value="' + esc(o) + '">'; }).join('') + '</datalist>';
+    }).join('');
+
+    var top =
+      '<div class="card"><div class="grid">' +
+      inp('s', 'pic', 'PIC') +
+      '<label class="f" id="siteWrap"><span>Site ID <b class="req">*</b></span>' +
+      '<input data-s="siteId" id="siteId" type="text" autocapitalize="characters" autocomplete="off" aria-required="true">' +
+      '<div class="err">Site ID wajib diisi.</div><div class="hint" id="siteHint"></div></label>' +
+      inp('s', 'siteName', 'Site Name') + inp('s', 'classSite', 'Class Site') + inp('s', 'cluster', 'Cluster') + inp('s', 'nop', 'NOP') +
+      '</div></div>';
+
+    var volt = [['voltNr', 'N-R (V)', 'fotoVoltNr', 'Foto N-R'], ['voltNs', 'N-S (V)', 'fotoVoltNs', 'Foto N-S'], ['voltNt', 'N-T (V)', 'fotoVoltNt', 'Foto N-T'], ['voltGn', 'G-N (V)', 'fotoVoltGn', 'Foto G-N']]
+      .map(function (r) { return pair(inp('s', r[0], r[1], { type: 'number' }), photo(r[2], r[3])); }).join('');
+    var arus = [['arusR', 'R (A)', 'fotoArusR', 'Foto Arus R'], ['arusS', 'S (A)', 'fotoArusS', 'Foto Arus S'], ['arusT', 'T (A)', 'fotoArusT', 'Foto Arus T']]
+      .map(function (r) { return pair(inp('s', r[0], r[1], { type: 'number' }), photo(r[2], r[3])); }).join('');
+
+    var kwh = sec('kwh', '⚡ KWH Meter &amp; ACPDB',
+      pair(inp('s', 'idPln', 'ID PLN'), photo('fotoIdPln', 'Upload Foto ID PLN')) +
+      '<div class="grid">' + inp('s', 'mcbKwh', 'MCB KWH', { list: 'mcbKwh' }) + inp('s', 'dayaMcbKwh', 'Daya MCB KWH', { list: 'dayaMcbKwh' }) + '</div>' +
+      '<div style="margin:12px 0">' + photo('fotoMcbKwh', 'Upload Foto MCB KWH') + '</div>' +
+      '<h4>Pengukuran Voltase (V) KWH</h4>' + volt +
+      '<h4>Pengukuran Arus (A) KWH</h4>' + arus +
+      statusPair('aresterKwh', 'Arester KWH', 'fotoAresterKwh') +
+      statusPair('connectorCosKwh', 'Connector COS KWH', 'fotoConnectorCosKwh') +
+      statusPair('handleCos', 'Handle Switch COS', 'fotoHandleCos') +
+      statusPair('aresterAcpdb', 'Arester ACPDB', 'fotoAresterAcpdb') +
+      '<h4>Foto Panel ACPDB Menyeluruh</h4>' + photo('fotoPanelAcpdb', 'Foto Panel ACPDB Menyeluruh') +
+      '<h4>Foto MCB Main ACPDB</h4>' + photo('fotoMcbMainAcpdb', 'Foto MCB Main ACPDB') +
+      '<h4>Foto MCB Distribusi ACPDB</h4>' + photo('fotoMcbDistribusiAcpdb', 'Foto MCB Distribusi ACPDB'));
+
+    var rects = '<div id="rects">' + rectHTML(1) + '</div>' +
+      '<div style="margin-bottom:12px"><button type="button" class="btn alt" id="btnAddRect">+ ADD Rectifier &amp; Battery</button></div>';
+
+    var test = sec('siteTest', '🔄 Site Level Test',
+      '<h4>Tes Backup Battery</h4><div class="grid">' + sel('s', 'backupTest', 'Tes Backup Battery', ['Ya', 'Tidak']) + '</div>' +
+      '<div id="backupBox" hidden>' +
+      '<div id="timer" aria-live="off">00:00:00</div>' +
+      '<div class="btn-row"><button type="button" class="btn" id="btnStartBk">Start Backup</button><button type="button" class="btn alt" id="btnEndBk">End Backup</button></div>' +
+      '<div class="grid" style="margin-top:14px">' + inp('s', 'backupStart', 'Start Backup', { ro: 1 }) + inp('s', 'backupEnd', 'End Backup', { ro: 1 }) + inp('s', 'backupTime', 'Durasi Backup', { ro: 1 }) + '</div>' +
+      '<h4>Battery Test Backup Result</h4>' +
+      '<label class="f"><span>Source Rectifier</span><select id="bkRect"><option value="">Pilih Rectifier</option></select></label>' +
+      '<div id="bkList"></div></div>');
+
+    var eas = sec('eas', '📡 Validasi EAS',
+      '<div class="grid">' + sel('s', 'mainFail', 'Main Fail', ['OK', 'NOK']) + sel('s', 'rectFail', 'Rect Fail', ['OK', 'NOK']) + sel('s', 'batteryStolen', 'Battery Stolen', ['OK', 'NOK']) + '</div>' +
+      '<div style="margin-top:12px">' + photo('fotoValidasiEas', 'Upload Foto Validasi EAS') + '</div>');
+
+    var secu = sec('security', '🔐 Security Perangkat',
+      pair(inp('s', 'beltingRect', 'Belting Rect', { list: 'beltingRect' }), photo('fotoBeltingRect', 'Upload Foto Belting Rect')) +
+      pair(inp('s', 'beltingRbs', 'Belting RBS', { list: 'beltingRbs' }), photo('fotoBeltingRbs', 'Upload Foto Belting RBS')));
+
+    $('#app').innerHTML = dl + top + kwh + rects + test + eas + secu;
+  }
+
+  /* ================= FOTO ================= */
+  function compress(file) {
+    return new Promise(function (resolve, reject) {
+      if (!file.type || file.type.indexOf('image/') !== 0) { reject(new Error('File bukan gambar: ' + file.name)); return; }
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('Foto tidak bisa diproses: ' + file.name)); };
+      img.onload = function () {
+        function draw(max, q) {
+          var s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+          var c = document.createElement('canvas');
+          c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          return c.toDataURL('image/jpeg', q);
+        }
+        var full = draw(1600, 0.78), thumb = draw(160, 0.7);
+        URL.revokeObjectURL(url);
+        resolve({ data: full.split(',')[1], preview: thumb });
+      };
+      img.src = url;
+    });
+  }
+  function paintPhoto(slot) {
+    var p = slot._photo, prev = $('.pprev', slot);
+    slot.classList.toggle('has', !!p);
+    prev.hidden = !p;
+    if (p) $('img', prev).src = p.preview;
+    $('.pbtn b', slot).textContent = p ? 'Ganti foto' : 'Ambil / pilih foto';
+  }
+  function onPhotoPicked(input) {
+    var slot = input.closest('.photo'), file = input.files && input.files[0];
+    input.value = '';
+    if (!file) return;
+    compress(file).then(function (r) { slot._photo = { data: r.data, preview: r.preview, link: '' }; paintPhoto(slot); })
+      .catch(function (e) { alert(e.message); });
+  }
+
+  /* ================= SN dinamis ================= */
+  function genSN(select) {
+    var rect = select.closest('.rect'), cat = select.getAttribute('data-gen');
+    var box = $('.sn-box[data-cat="' + cat + '"]', rect), withPhoto = box.hasAttribute('data-photo-sn');
+    var n = parseInt(select.value, 10) || 0, items = $$('.sn-item', box);
+    while (items.length > n) { box.removeChild(items.pop()); }
+    for (var i = items.length + 1; i <= n; i++) {
+      var d = document.createElement('div');
+      d.className = 'sn-item';
+      d.innerHTML = '<label class="f"><span>SN ' + cat + ' ' + i + '</span><input type="text" data-sn></label>' +
+        (withPhoto ? photo('foto' + cat.replace(' ', ''), 'Upload Foto ' + cat + ' ' + i, i) : '');
+      box.appendChild(d);
+    }
+  }
+
+  /* ================= RECT ADD / DELETE ================= */
+  function addRect() {
+    rectCounter++;
+    $('#rects').insertAdjacentHTML('beforeend', rectHTML(rectCounter));
+    var el = $('#rects .rect:last-child');
+    el.open = true;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    refreshBackupRects();
+  }
+  function delRect(n) {
+    if (!confirm('Hapus Rectifier & Battery ini?')) return;
+    var el = $('.rect[data-rectno="' + n + '"]');
+    if (el) el.remove();
+    delete backup.cache[n];
+    if (backup.active === String(n)) { backup.active = ''; $('#bkList').innerHTML = ''; }
+    refreshBackupRects();
+  }
+
+  /* ================= BACKUP TEST ================= */
+  var backup = { cache: {}, active: '', startAt: null, timer: null };
+  function fmtDur(sec) {
+    var p = function (x) { return ('0' + x).slice(-2); };
+    return p(Math.floor(sec / 3600)) + ':' + p(Math.floor(sec % 3600 / 60)) + ':' + p(sec % 60);
+  }
+  function startBackup() {
+    backup.startAt = new Date();
+    $('[data-s="backupStart"]').value = backup.startAt.toLocaleString('id-ID');
+    $('[data-s="backupEnd"]').value = ''; $('[data-s="backupTime"]').value = '';
+    clearInterval(backup.timer);
+    $('#btnStartBk').disabled = true;
+    backup.timer = setInterval(function () {
+      $('#timer').textContent = fmtDur(Math.floor((new Date() - backup.startAt) / 1000));
+    }, 1000);
+  }
+  function endBackup() {
+    if (!backup.startAt) return;
+    clearInterval(backup.timer);
+    $('[data-s="backupEnd"]').value = new Date().toLocaleString('id-ID');
+    $('[data-s="backupTime"]').value = fmtDur(Math.floor((new Date() - backup.startAt) / 1000));
+    $('#timer').textContent = $('[data-s="backupTime"]').value;
+    $('#btnStartBk').disabled = false;
+  }
+  function refreshBackupRects() {
+    var s = $('#bkRect'); if (!s) return;
+    var cur = s.value;
+    s.innerHTML = '<option value="">Pilih Rectifier</option>' + $$('.rect').map(function (r) {
+      return '<option value="' + r.dataset.rectno + '">Rectifier #' + r.dataset.rectno + '</option>';
+    }).join('');
+    s.value = $('.rect[data-rectno="' + cur + '"]') ? cur : '';
+  }
+  var BK_FIELDS = [['t0Voltage', 'T0 Voltage'], ['t0Current', 'T0 Current'], ['t10Voltage', 'T10 Voltage'], ['t10Current', 'T10 Current'],
+    ['t20Voltage', 'T20 Voltage'], ['t20Current', 'T20 Current'], ['t30Voltage', 'T30 Voltage'], ['t30Current', 'T30 Current']];
+  function saveBackupCurrent() {
+    if (!backup.active) return;
+    backup.cache[backup.active] = $$('#bkList .bk-item').map(function (it, i) {
+      var o = { rectNo: backup.active, batteryNo: i + 1, snBattery: $('[data-b="snBattery"]', it).value.trim() };
+      BK_FIELDS.forEach(function (f) { o[f[0]] = $('[data-b="' + f[0] + '"]', it).value.trim(); });
+      return o;
+    });
+  }
+  function loadBackupBattery() {
+    saveBackupCurrent();
+    renderBackup($('#bkRect').value);
+  }
+  function renderBackup(no) {
+    var box = $('#bkList');
+    box.innerHTML = ''; backup.active = '';
+    if (!no) return;
+    var rect = $('.rect[data-rectno="' + no + '"]');
+    var n = parseInt(rect && $('[data-k="jumlahBattery"]', rect).value, 10) || 0;
+    backup.active = no;
+    if (n <= 0) { box.innerHTML = '<p class="hint">Tidak ada Battery pada Rectifier #' + no + '. Isi "Jumlah Battery" di Rectifier & Battery terlebih dahulu.</p>'; return; }
+    var saved = backup.cache[no] || [];
+    for (var i = 1; i <= n; i++) {
+      var d = document.createElement('div'); d.className = 'bk-item';
+      d.innerHTML = '<h4>Battery #' + i + '</h4>' + inp('b', 'snBattery', 'SN Battery') +
+        '<div class="quad" style="margin-top:10px">' + BK_FIELDS.map(function (f) { return inp('b', f[0], f[1], { type: 'number' }); }).join('') + '</div>';
+      box.appendChild(d);
+      var s = saved[i - 1];
+      if (s) { $('[data-b="snBattery"]', d).value = s.snBattery; BK_FIELDS.forEach(function (f) { $('[data-b="' + f[0] + '"]', d).value = s[f[0]]; }); }
+    }
+  }
+  function toggleBackup() {
+    var ya = $('[data-s="backupTest"]').value === 'Ya';
+    $('#backupBox').hidden = !ya;
+    if (ya) refreshBackupRects();
+  }
+
+  /* ================= LOOKUP SITE ================= */
+  var lookupTimer = null;
+  function lookupSite() {
+    var v = $('#siteId').value.trim().toUpperCase();
+    $('#siteId').value = v;
+    var hint = $('#siteHint');
+    if (!v) { hint.textContent = ''; hint.className = 'hint'; return; }
+    hint.textContent = 'Mencari data site…'; hint.className = 'hint';
+    run('getSiteData', v).then(function (r) {
+      if ($('#siteId').value.trim().toUpperCase() !== v) return;
+      if (r) {
+        ['siteName', 'classSite', 'cluster', 'nop'].forEach(function (k) { $('[data-s="' + k + '"]').value = r[k] || ''; });
+        hint.textContent = 'Data site ditemukan.'; hint.className = 'hint ok';
+      } else {
+        hint.textContent = 'Site ID belum ada di Master Site. Isi Site Name, Class, Cluster, dan NOP secara manual.'; hint.className = 'hint warn';
+      }
+    }).catch(function () { hint.textContent = ''; });
+  }
+
+  /* ================= KIRIM ================= */
+  function api(path, opts) {
+    return fetch(path, opts).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        if (!r.ok) throw new Error(j.error || ('Server error ' + r.status));
+        return j;
+      });
+    }, function () { throw new Error('Tidak ada koneksi ke server. Periksa internet lalu coba lagi.'); });
+  }
+  var post = function (path, body) {
+    return api(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  };
+  function run(fn) {
+    var a = Array.prototype.slice.call(arguments, 1);
+    if (fn === 'getSiteData') return api('api/site/' + encodeURIComponent(a[0]));
+    if (fn === 'saveImage') return post('api/image', a[0]).then(function (j) { return j.url; });
+    if (fn === 'saveData') return post('api/submit', a[0]);
+    return Promise.reject(new Error('Fungsi tidak dikenal'));
+  }
+  function retry(fn, times) {
+    return fn().catch(function (e) {
+      if (times <= 0) throw e;
+      return new Promise(function (r) { setTimeout(r, 800); }).then(function () { return retry(fn, times - 1); });
+    });
+  }
+
+  var attempt = null, busy = false; // attempt = {visit, key}: tetap sama selama kirim ulang
+  function newAttempt() {
+    var d = new Date(), p = function (n) { return ('0' + n).slice(-2); };
+    return { visit: d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()),
+      key: Date.now().toString(36) + Math.random().toString(36).slice(2, 10) };
+  }
+  var gs = function (k) { var e = $('[data-s="' + k + '"]'); return e ? e.value.trim() : ''; };
+
+  function overlay(html) { $('#ovBox').innerHTML = html; $('#ov').classList.add('show'); }
+  function closeOverlay() { $('#ov').classList.remove('show'); }
+  function setProg(done, total, text) {
+    var pct = total ? Math.round(done / total * 100) : 0;
+    var bar = $('#ovProg'); if (bar) bar.style.width = pct + '%';
+    var t = $('#ovText'); if (t) t.textContent = text;
+  }
+
+  function readRect(sec) {
+    var g = function (k) { var e = $('[data-k="' + k + '"]', sec); return e ? e.value.trim() : ''; };
+    var keys = ['typeRect', 'statusRect', 'ncuType', 'modulRect', 'jumlahModulRect', 'voltRect', 'adcRect', 'modulGood', 'modulFaulty',
+      'jenisBattery', 'batteryType', 'statusBattery', 'jumlahBattery', 'batteryGood', 'batteryFaulty'];
+    var r = { rectNo: sec.dataset.rectno, photos: {}, sn: [] };
+    keys.forEach(function (k) { r[k] = g(k); });
+    $$('[data-photo]', sec).forEach(function (el) {
+      if (!el.closest('.sn-item') && el._photo && el._photo.link) r.photos[el.dataset.photo] = el._photo.link;
+    });
+    $$('.sn-box', sec).forEach(function (box) {
+      $$('.sn-item', box).forEach(function (it, i) {
+        var ph = $('[data-photo]', it);
+        r.sn.push({ kategori: box.dataset.cat, no: i + 1, sn: $('[data-sn]', it).value.trim(), foto: ph && ph._photo ? ph._photo.link : '' });
+      });
+    });
+    return r;
+  }
+
+  function submit() {
+    if (busy) return;
+    var barMsg = $('#barMsg'); barMsg.textContent = '';
+    var siteId = gs('siteId').toUpperCase();
+    if (!siteId) {
+      $('#siteWrap').classList.add('invalid');
+      barMsg.textContent = 'Site ID wajib diisi.';
+      $('#siteId').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      $('#siteId').focus({ preventScroll: true });
+      return;
+    }
+    if (!confirm('KONFIRMASI SUBMIT DATA\n\nSite ID   : ' + siteId + '\nSite Name : ' + gs('siteName') +
+      '\n\nPastikan seluruh data dan foto yang diinput sudah benar.\n\nKlik OK untuk melanjutkan submit.')) return;
+
+    busy = true; $('#btnSubmit').disabled = true;
+    var slots = $$('[data-photo]').filter(function (el) { return el._photo; });
+    var total = slots.length;
+
+    overlay('<div class="big">⏳</div><div class="title">Sedang menyimpan data…</div><div class="sub" id="ovText">Menyiapkan…</div>' +
+      '<div class="prog"><i id="ovProg"></i></div><div class="warnline">⚠️ Jangan tutup halaman atau pindah aplikasi</div>');
+
+    if (!attempt) attempt = newAttempt();
+    var nop = gs('nop'), dest = siteId + '|' + nop + '|' + attempt.visit;
+    var p = Promise.resolve();
+
+    p.then(function () {
+      var chain = Promise.resolve(), done = 0;
+      slots.forEach(function (el) {
+        chain = chain.then(function () {
+          if (el._photo.link && el._photo.dest === dest) { done++; return; }
+          var rect = el.closest('.rect');
+          var payload = { siteId: siteId, nop: nop, visit: attempt.visit, key: el.dataset.photo,
+            rectNo: rect ? rect.dataset.rectno : '', idx: el.dataset.idx || '', data: el._photo.data };
+          setProg(done, total, 'Mengunggah foto ' + (done + 1) + ' dari ' + total);
+          return retry(function () { return run('saveImage', payload); }, 2).then(function (url) {
+            el._photo.link = url; el._photo.dest = dest; done++; setProg(done, total, 'Mengunggah foto ' + done + ' dari ' + total);
+          });
+        });
+      });
+      return chain;
+    }).then(function () {
+      setProg(total, total, 'Menyimpan data ke spreadsheet…');
+      var data = { submitKey: attempt.key, visit: attempt.visit };
+      ['pic', 'siteId', 'siteName', 'classSite', 'cluster', 'nop', 'idPln', 'mcbKwh', 'dayaMcbKwh', 'voltNr', 'voltNs', 'voltNt', 'voltGn',
+        'arusR', 'arusS', 'arusT', 'aresterKwh', 'connectorCosKwh', 'handleCos', 'aresterAcpdb', 'mainFail', 'rectFail', 'batteryStolen',
+        'beltingRect', 'beltingRbs', 'backupTest'].forEach(function (k) { data[k] = gs(k); });
+      data.siteId = siteId;
+      $$('[data-photo]').forEach(function (el) {
+        if (!el.closest('.rect') && el._photo && el._photo.link) data[el.dataset.photo] = el._photo.link;
+      });
+      data.rectifiers = $$('.rect').map(readRect);
+      data.backupResults = [];
+      if (data.backupTest === 'Ya') {
+        data.backupStart = gs('backupStart'); data.backupEnd = gs('backupEnd'); data.backupTime = gs('backupTime');
+        saveBackupCurrent();
+        Object.keys(backup.cache).forEach(function (no) {
+          if ($('.rect[data-rectno="' + no + '"]')) data.backupResults = data.backupResults.concat(backup.cache[no]);
+        });
+      }
+      return run('saveData', data);
+    }).then(function () {
+      var name = gs('siteName');
+      overlay('<div class="big">✅</div><div class="title">Data berhasil disimpan</div><div class="sub"><b style="color:#1565c0;font-size:17px">' +
+        esc(siteId + (name ? ' - ' + name.toUpperCase() : '')) + '</b><br><br>' + new Date().toLocaleString('id-ID') + '</div>' +
+        '<button class="btn" id="btnNew" type="button">Isi form baru</button>');
+      $('#btnNew').onclick = resetAll;
+    }).catch(function (e) {
+      overlay('<div class="big">❌</div><div class="title">Pengiriman data gagal</div><div class="sub">' + esc(e.message || 'Terjadi kesalahan') +
+        '<br><br>Data yang sudah diisi tidak dihapus. Periksa koneksi internet lalu kirim ulang. Foto yang sudah terunggah tidak diunggah ulang.</div>' +
+        '<button class="btn" id="btnRetry" type="button">Kirim ulang</button><button class="btn alt" id="btnClose" type="button">Tutup</button>');
+      $('#btnRetry').onclick = function () { closeOverlay(); busy = false; submit(); };
+      $('#btnClose').onclick = closeOverlay;
+    }).then(function () { busy = false; $('#btnSubmit').disabled = false; });
+  }
+
+  function resetAll() {
+    clearInterval(backup.timer);
+    backup = { cache: {}, active: '', startAt: null, timer: null };
+    attempt = null;
+    buildForm(); closeOverlay(); $('#barMsg').textContent = '';
+    window.scrollTo({ top: 0 });
+  }
+
+  /* ================= EVENT ================= */
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.matches('.photo input[type=file]')) onPhotoPicked(t);
+    else if (t.matches('select[data-gen]')) genSN(t);
+    else if (t.matches('[data-s="backupTest"]')) toggleBackup();
+    else if (t.id === 'bkRect') loadBackupBattery();
+    else if (t.id === 'siteId') lookupSite();
+    else if (t.matches('[data-k="jumlahBattery"]')) {
+      var rect = t.closest('.rect');
+      if (backup.active === rect.dataset.rectno) { saveBackupCurrent(); renderBackup(backup.active); }
+    }
+  });
+
+  document.addEventListener('input', function (e) {
+    if (e.target.id === 'siteId') $('#siteWrap').classList.remove('invalid');
+  });
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (t.closest('.prm')) { var slot = t.closest('.photo'); slot._photo = null; paintPhoto(slot); e.preventDefault(); return; }
+    var del = t.closest('[data-del]');
+    if (del) { e.preventDefault(); e.stopPropagation(); delRect(del.getAttribute('data-del')); return; }
+    if (t.id === 'btnAddRect') addRect();
+    else if (t.id === 'btnStartBk') startBackup();
+    else if (t.id === 'btnEndBk') endBackup();
+  });
+  $('#btnSubmit').addEventListener('click', submit);
+
+  buildForm();
+})();
+</script>
+</body>
+</html>
