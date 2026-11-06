@@ -16,5 +16,8 @@
     "express": "^4.19.2",
     "express-rate-limit": "^7.4.0",
     "google-auth-library": "^9.14.0"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }

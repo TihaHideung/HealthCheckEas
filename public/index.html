@@ -20,6 +20,7 @@
   .wrap { max-width: 980px; margin: 0 auto; padding: 12px; }
   header.top { background: var(--brand); color: #fff; padding: 18px 0 20px; padding-top: calc(18px + env(safe-area-inset-top, 0px)); }
   header.top .wrap { padding-top: 0; padding-bottom: 0; }
+  .top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   h1 { margin: 0; font-size: clamp(20px, 5vw, 28px); line-height: 1.2; }
   .tag { font-size: 11px; border: 1px solid rgba(255,255,255,.8); border-radius: 10px; padding: 1px 7px; margin-left: 8px; vertical-align: middle; font-weight: 500; }
 
@@ -116,7 +117,10 @@
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <h1>Healthy Check &amp; Validasi EAS<span class="tag">@BJ</span></h1>
+  <div class="top-row">
+    <h1>Healthy Check &amp; Validasi EAS<span class="tag">@BJ</span></h1>
+    <a class="btn alt" href="/files/" target="_blank" rel="noopener noreferrer">Lihat foto</a>
+  </div>
 </div></header>
 
 <main class="wrap" id="app"></main>
@@ -224,8 +228,7 @@
       '<input data-s="siteId" id="siteId" type="text" autocapitalize="characters" autocomplete="off" aria-required="true">' +
       '<div class="err">Site ID wajib diisi.</div><div class="hint" id="siteHint"></div></label>' +
       inp('s', 'siteName', 'Site Name') + inp('s', 'classSite', 'Class Site') + inp('s', 'cluster', 'Cluster') + inp('s', 'nop', 'NOP') +
-      '</div><div style="margin-top:12px"><button type="button" class="btn alt" id="btnViewPhotos" disabled>Lihat foto site</button>' +
-      '<div class="hint">Isi Site ID untuk membuka galeri foto site.</div></div></div>';
+      '</div></div>';
 
     var volt = [['voltNr', 'N-R (V)', 'fotoVoltNr', 'Foto N-R'], ['voltNs', 'N-S (V)', 'fotoVoltNs', 'Foto N-S'], ['voltNt', 'N-T (V)', 'fotoVoltNt', 'Foto N-T'], ['voltGn', 'G-N (V)', 'fotoVoltGn', 'Foto G-N']]
       .map(function (r) { return pair(inp('s', r[0], r[1], { type: 'number' }), photo(r[2], r[3])); }).join('');
@@ -428,16 +431,6 @@
     }).catch(function () { hint.textContent = ''; });
   }
 
-  function folderSegment(value, fallback) {
-    return String(value == null ? '' : value)
-      .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-').replace(/\s+/g, ' ')
-      .replace(/^[.\s]+/, '').trim().slice(0, 80) || fallback;
-  }
-
-  function updateViewPhotosButton() {
-    $('#btnViewPhotos').disabled = !$('#siteId').value.trim();
-  }
-
   /* ================= KIRIM ================= */
   function api(path, opts) {
     return fetch(path, opts).then(function (r) {
@@ -596,10 +589,7 @@
   });
 
   document.addEventListener('input', function (e) {
-    if (e.target.id === 'siteId') {
-      $('#siteWrap').classList.remove('invalid');
-      updateViewPhotosButton();
-    }
+    if (e.target.id === 'siteId') $('#siteWrap').classList.remove('invalid');
   });
   document.addEventListener('click', function (e) {
     var t = e.target;
@@ -609,14 +599,6 @@
     if (t.id === 'btnAddRect') addRect();
     else if (t.id === 'btnStartBk') startBackup();
     else if (t.id === 'btnEndBk') endBackup();
-    else if (t.id === 'btnViewPhotos') {
-      var siteId = $('#siteId').value.trim().toUpperCase();
-      if (!siteId) return;
-      var nop = $('[data-s="nop"]').value.trim();
-      var url = '/files/' + encodeURIComponent(folderSegment(nop, 'Tanpa NOP')) + '/' +
-        encodeURIComponent(folderSegment(siteId, 'Tanpa Site ID')) + '/';
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
   });
   $('#btnSubmit').addEventListener('click', submit);
 
