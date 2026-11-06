@@ -423,10 +423,10 @@
     run('getSiteData', v).then(function (r) {
       if ($('#siteId').value.trim().toUpperCase() !== v) return;
       if (r) {
-        ['siteName', 'classSite', 'cluster', 'nop'].forEach(function (k) { $('[data-s="' + k + '"]').value = r[k] || ''; });
+        ['siteName', 'classSite', 'cluster', 'nop'].forEach(function (k) { $('[data-s="' + k + '"]').value = String(r[k] || '').toUpperCase(); });
         hint.textContent = 'Data site ditemukan.'; hint.className = 'hint ok';
       } else {
-        hint.textContent = 'Site ID belum ada di Master Site. Isi Site Name, Class, Cluster, dan NOP secara manual.'; hint.className = 'hint warn';
+        hint.textContent = ''; hint.className = 'hint';
       }
     }).catch(function () { hint.textContent = ''; });
   }
@@ -464,6 +464,13 @@
       key: Date.now().toString(36) + Math.random().toString(36).slice(2, 10) };
   }
   var gs = function (k) { var e = $('[data-s="' + k + '"]'); return e ? e.value.trim() : ''; };
+  var SITE_TEXT_FIELDS = ['siteName', 'classSite', 'cluster', 'nop'];
+  function normalizeSiteText() {
+    SITE_TEXT_FIELDS.forEach(function (k) {
+      var field = $('[data-s="' + k + '"]');
+      field.value = field.value.trim().toUpperCase();
+    });
+  }
 
   function overlay(html) { $('#ovBox').innerHTML = html; $('#ov').classList.add('show'); }
   function closeOverlay() { $('#ov').classList.remove('show'); }
@@ -494,6 +501,7 @@
   function submit() {
     if (busy) return;
     var barMsg = $('#barMsg'); barMsg.textContent = '';
+    normalizeSiteText();
     var siteId = gs('siteId').toUpperCase();
     if (!siteId) {
       $('#siteWrap').classList.add('invalid');
@@ -580,6 +588,9 @@
     if (t.matches('.photo input[type=file]')) onPhotoPicked(t);
     else if (t.matches('select[data-gen]')) genSN(t);
     else if (t.matches('[data-s="backupTest"]')) toggleBackup();
+    else if (t.matches('[data-s="siteName"], [data-s="classSite"], [data-s="cluster"], [data-s="nop"]')) {
+      t.value = t.value.trim().toUpperCase();
+    }
     else if (t.id === 'bkRect') loadBackupBattery();
     else if (t.id === 'siteId') lookupSite();
     else if (t.matches('[data-k="jumlahBattery"]')) {

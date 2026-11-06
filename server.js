@@ -24,7 +24,7 @@ function createApp({ sheets, spreadsheetId, filesDir, user, pass, baseUrl, tz })
   fs.mkdirSync(filesDir, { recursive: true });
   const stamp = (d) => new Intl.DateTimeFormat('sv-SE', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(d);
   const origin = (req) => (baseUrl || (req.protocol + '://' + req.get('host'))).replace(/\/+$/, '');
-  const sitePath = (nop, siteId) => [cleanName(nop, 'Tanpa NOP'), cleanName(siteId, 'Tanpa Site ID')];
+  const sitePath = (nop, siteId) => [cleanName(nop, 'Tanpa NOP').toUpperCase(), cleanName(siteId, 'Tanpa Site ID').toUpperCase()];
 
   /* ---------- Sheets ---------- */
   let sheetIds = null;
@@ -63,7 +63,7 @@ function createApp({ sheets, spreadsheetId, filesDir, user, pass, baseUrl, tz })
       }
       const r = await sheets.spreadsheets.values.get({ spreadsheetId, range: "'" + TABS.MASTER.name + "'!A2:E" });
       const map = new Map();
-      (r.data.values || []).forEach((c) => { if (c[0]) map.set(String(c[0]).trim().toUpperCase(), { siteName: c[1] || '', classSite: c[2] || '', cluster: c[3] || '', nop: c[4] || '' }); });
+      (r.data.values || []).forEach((c) => { if (c[0]) map.set(String(c[0]).trim().toUpperCase(), { siteName: String(c[1] || '').trim().toUpperCase(), classSite: String(c[2] || '').trim().toUpperCase(), cluster: String(c[3] || '').trim().toUpperCase(), nop: String(c[4] || '').trim().toUpperCase() }); });
       master = { t: Date.now(), map };
     } catch (e) { console.error('Master Site:', e.message); master.t = Date.now() - 20000; }
     return master.map;
@@ -87,7 +87,7 @@ function createApp({ sheets, spreadsheetId, filesDir, user, pass, baseUrl, tz })
   // Simpan foto: <filesDir>/<NOP>/<Site ID>/<Kategori>/<file>.jpg
   app.post('/api/image', wrap(async (req, res) => {
     const b = req.body || {};
-    const siteId = str(b.siteId, 60).trim();
+    const siteId = str(b.siteId, 60).trim().toUpperCase();
     if (!siteId) return res.status(400).json({ error: 'Site ID wajib diisi.' });
     const key = String(b.key || '');
     const rectNo = String(b.rectNo || '');
@@ -115,8 +115,10 @@ function createApp({ sheets, spreadsheetId, filesDir, user, pass, baseUrl, tz })
   const done = new Map(); // submitKey -> hasil (cegah dobel saat kirim ulang)
   app.post('/api/submit', wrap(async (req, res) => {
     const d = req.body || {};
-    const siteId = str(d.siteId, 60).trim();
+    const siteId = str(d.siteId, 60).trim().toUpperCase();
+    d.siteId = siteId;
     if (!siteId) return res.status(400).json({ error: 'Site ID wajib diisi.' });
+    ['siteName', 'classSite', 'cluster', 'nop'].forEach((key) => { d[key] = str(d[key], 500).trim().toUpperCase(); });
     const sk = /^[a-z0-9]{8,40}$/.test(String(d.submitKey)) ? d.submitKey : null;
     if (sk && done.has(sk)) return res.json(done.get(sk));
 
@@ -240,11 +242,11 @@ function createApp({ sheets, spreadsheetId, filesDir, user, pass, baseUrl, tz })
     const dirs = entries.filter((e) => e.isDirectory()).map((e) => '<a class="d" href="' + base + encodeURIComponent(e.name) + '/">📁 ' + html(e.name) + '</a>').join('');
     const imgs = entries.filter((e) => e.isFile()).map((e) => '<a class="i" href="' + base + encodeURIComponent(e.name) + '" target="_blank"><img loading="lazy" src="' + base + encodeURIComponent(e.name) + '" alt=""><span>' + html(e.name) + '</span></a>').join('');
     res.send('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Foto</title>' +
-      '<style>body{font:15px system-ui,sans-serif;margin:0;padding:16px;background:#eef2f7}nav{margin-bottom:14px;font-weight:600}a{color:#1565c0;text-decoration:none}' +
+      '<style>body{font:15px system-ui,sans-serif;margin:0;padding:16px;background:#eef2f7}header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}nav{font-weight:600}a{color:#1565c0;text-decoration:none}.home{display:inline-block;background:#1565c0;color:#fff;border-radius:8px;padding:9px 13px;font-weight:600}' +
       '.d{display:block;background:#fff;border:1px solid #cfd8e3;border-radius:8px;padding:12px 14px;margin-bottom:8px;color:#1b2733}' +
       '.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}.i{background:#fff;border:1px solid #cfd8e3;border-radius:8px;overflow:hidden}' +
       '.i img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#dde4ec}.i span{display:block;padding:6px 8px;font-size:11.5px;word-break:break-all;color:#1b2733}</style>' +
-      '<nav>' + crumbs + '</nav>' + dirs + (imgs ? '<div class="g">' + imgs + '</div>' : '') + (!dirs && !imgs ? '<p>Folder kosong.</p>' : ''));
+      '<header><nav>' + crumbs + '</nav><a class="home" href="/">Kembali ke form</a></header>' + dirs + (imgs ? '<div class="g">' + imgs + '</div>' : '') + (!dirs && !imgs ? '<p>Folder kosong.</p>' : ''));
   });
 
   app.use(express.static(path.join(__dirname, 'public')));

@@ -9,6 +9,8 @@ Kategori: KWH Meter, ACPDB, Rectifier 1.., Battery 1.., Validasi EAS, Security P
 ```
 
 Site tanpa NOP masuk ke folder `Tanpa NOP`.
+Site ID, Site Name, Class Site, Cluster, dan NOP dinormalisasi ke huruf besar agar perbedaan kapitalisasi tidak menghasilkan nilai atau folder baru.
+Atur `FILES_DIR` ke folder persisten di luar direktori aplikasi. Jika tidak diatur, aplikasi memakai `uploads` di dalam direktori aplikasi; pada hosting yang membuat direktori versi baru saat deploy, lokasi default ini dapat berubah atau tidak ikut terbawa ke versi berikutnya.
 
 - Link foto di spreadsheet membuka `https://domainmu.com/files/...` dan **wajib login** (`FILES_USER` / `FILES_PASS`).
   Kolom "Folder Foto Site" membuka folder `NOP / Site ID`, tampil sebagai galeri thumbnail.
