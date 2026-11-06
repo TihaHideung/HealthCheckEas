@@ -12,6 +12,7 @@ Site tanpa NOP masuk ke folder `Tanpa NOP`.
 
 - Link foto di spreadsheet membuka `https://domainmu.com/files/...` dan **wajib login** (`FILES_USER` / `FILES_PASS`).
   Kolom "Folder Foto Site" membuka folder `NOP / Site ID`, tampil sebagai galeri thumbnail.
+  Di halaman form, isi Site ID lalu klik **Lihat foto site** untuk membuka galeri site tersebut.
   Buka `https://domainmu.com/files/` untuk menelusuri semua NOP.
 
 ## Setup (sekali saja, di komputer)
