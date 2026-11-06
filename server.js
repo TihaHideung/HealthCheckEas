@@ -253,16 +253,14 @@ function createApp({ sheets, spreadsheetId, filesDir, user, pass, baseUrl, tz })
 
 module.exports = { createApp };
 
-if (require.main === module) {
-  const { loadEnv, clients } = require('./lib/google');
-  loadEnv();
-  const e = process.env;
-  const spreadsheetId = e.SPREADSHEET_ID || e.GOOGLE_SHEET_ID;
-  const missing = [!spreadsheetId && 'SPREADSHEET_ID / GOOGLE_SHEET_ID', !e.FILES_PASS && 'FILES_PASS'].filter(Boolean);
-  if (missing.length) { console.error('Belum diisi: ' + missing.join(', ') + ' (lihat README)'); process.exit(1); }
-  const { sheets } = clients();
-  createApp({
-    sheets, spreadsheetId, tz: e.TZ, baseUrl: e.BASE_URL,
-    filesDir: e.FILES_DIR || path.join(__dirname, 'uploads'), user: e.FILES_USER || 'admin', pass: e.FILES_PASS
-  }).listen(e.PORT || 3000, () => console.log('Berjalan di port ' + (e.PORT || 3000) + ' | foto: ' + path.resolve(e.FILES_DIR || path.join(__dirname, 'uploads'))));
-}
+const { loadEnv, clients } = require('./lib/google');
+loadEnv();
+const e = process.env;
+const spreadsheetId = e.SPREADSHEET_ID || e.GOOGLE_SHEET_ID;
+const missing = [!spreadsheetId && 'SPREADSHEET_ID / GOOGLE_SHEET_ID', !e.FILES_PASS && 'FILES_PASS'].filter(Boolean);
+if (missing.length) { console.error('Belum diisi: ' + missing.join(', ') + ' (lihat README)'); process.exit(1); }
+const { sheets } = clients();
+createApp({
+  sheets, spreadsheetId, tz: e.TZ, baseUrl: e.BASE_URL,
+  filesDir: e.FILES_DIR || path.join(__dirname, 'uploads'), user: e.FILES_USER || 'admin', pass: e.FILES_PASS
+}).listen(e.PORT || 3000, () => console.log('Berjalan di port ' + (e.PORT || 3000) + ' | foto: ' + path.resolve(e.FILES_DIR || path.join(__dirname, 'uploads'))));
